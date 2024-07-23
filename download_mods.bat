@@ -1,0 +1,1 @@
+"E:\Steamcmd\steamcmd.exe" +login anonymous +workshop_download_item 322330 3152056502 validate +workshop_download_item 322330 3266123321 validate +workshop_download_item 322330 3288149713 validate +workshop_download_item 322330 2139920478 validate +workshop_download_item 322330 2978066706 validate +workshop_download_item 322330 3288149713 validate +quit
