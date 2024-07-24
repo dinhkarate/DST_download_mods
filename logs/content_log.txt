@@ -1,7 +1,0 @@
-
-
-[2024-07-23 14:26:00] Client version: 1721172922
-[2024-07-23 14:26:00] Load failed: D:\Steamcmd\steamapps\libraryfolders.vdf.
-[2024-07-23 14:26:00] Load failed: D:\Steamcmd\config\libraryfolders.vdf.
-[2024-07-23 14:26:00] Steam library folders configuration will be reset.
-[2024-07-23 14:26:00] No install folder configuration files found.
