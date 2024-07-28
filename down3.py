@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
 import sys
+from regex_steamapps import find_paths_with_steamapps
 
 messagebox.showinfo("Chọn đường dẫn Steam", "Chọn đường dẫn Steam")
 steamapps = filedialog.askdirectory(title = "Chọn đường dẫn Steam")
@@ -11,6 +12,7 @@ mod_dir = "steamapps/workshop/content/322330"
 steamapps_mod = f'{steamapps}/{mod_dir}'
 #print(steamapps)
 #print(steamapps_mod)
+steamapps_log = []
 
 mod_id_list = []
 
@@ -73,6 +75,10 @@ def process_file():
                         match3 = re.search(pattern3, line3)
                         if match3:
                             t = match3.group(1)
+
+            with open(input_file, 'r', encoding='utf-8') as infile:
+                    for line4 in infile:
+                        steanapps_log = find_paths_with_steamapps(line4)
                     
                     #batch_file.write(' +quit\n')
             # messagebox.showinfo("Mod Information", f"Mod bị lỗi:\nMod Name: {x}\nServer Version: {y}\nWorkshop Version: {z}\nMã lỗi: {t}")
