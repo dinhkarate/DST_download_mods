@@ -6,15 +6,12 @@ import os
 import sys
 from regex_steamapps import find_paths_with_steamapps
 
-messagebox.showinfo("Chọn đường dẫn Steam", "Chọn đường dẫn Steam")
-steamapps = filedialog.askdirectory(title = "Chọn đường dẫn Steam")
-mod_dir = "steamapps/workshop/content/322330"
-steamapps_mod = f'{steamapps}/{mod_dir}'
+
 #print(steamapps)
 #print(steamapps_mod)
 steamapps_log = []
 
-mod_id_list = []
+
 
 # Function to get the path of the script or executable
 def get_script_path():
@@ -29,6 +26,15 @@ def get_script_path():
 script_dir = get_script_path()
 steamcmd_path = os.path.join(script_dir, 'steamcmd.exe')
 
+mod_id_list = []
+
+# messagebox.showinfo("Chọn đường dẫn Steam", "Chọn đường dẫn Steam")
+steamapps = ""
+steamapps_2 = None
+# steamapps = filedialog.askdirectory(title = "Chọn đường dẫn Steam")
+mod_dir = "steamapps/workshop/content/322330"
+
+steamapps_mod = f'{steamapps}/{mod_dir}'
 # Đường dẫn tới file batch để tạo
 output_batch_file = os.path.join(script_dir, 'download_mods.bat')
 
@@ -37,6 +43,8 @@ pattern = r"Failed to find mod workshop-(\d+)"
 pattern2 = re.compile(r"The server's version of (.+?) does not match the version on the Steam Workshop\. Server version: ([\d\.]+) Workshop version: ([\d\.]+)")
 pattern3 = r'Reason: "([^"]+)"'
 
+pattern4 = r"[A-Z]:\\.*?\\steamapps\\"
+
 # messagebox.showinfo("Hướng dẫn", "Chọn đường dẫn đến file client_log.txt")
 # Hiển thị hộp thoại để chọn file input
 # input_file = filedialog.askopenfilename(title="Chọn file input", filetypes=(("Text files", "*.txt"), ("All files", "*.*")))
@@ -44,6 +52,7 @@ pattern3 = r'Reason: "([^"]+)"'
 def process_file():
     input_file = filedialog.askopenfilename(title="Chọn file input", filetypes=(("Text files", "*.txt"), ("All files", "*.*")))
     x = y = z = t = "Không tìm thấy"
+    global steamapps_2
     if input_file:
         try:
             #steamcmd_path = "path_to_steamcmd.exe"  # Adjust the path to your SteamCMD executable
@@ -77,13 +86,29 @@ def process_file():
                             t = match3.group(1)
 
             with open(input_file, 'r', encoding='utf-8') as infile:
+<<<<<<< HEAD
+                    flag = 1
+                    for line4 in infile:
+                        match4 = re.search(pattern4, line4)
+                        if match4 and flag:
+                            base_path = match4.group(0)
+                            #print(base_path)
+                            # base_path = re.search(r"[^ ]*\\steamapps\\", path).group(0)
+                            new_path = base_path + "workshop/content/322330"
+                            steamapps_2 = new_path
+                            flag = 0
+                            break
+                            #print(steamapps)
+=======
                     for line4 in infile:
                         steanapps_log = find_paths_with_steamapps(line4)
+>>>>>>> 2e3c42b5a39bfceb132ba33d92338cacc6297290
                     
                     #batch_file.write(' +quit\n')
             # messagebox.showinfo("Mod Information", f"Mod bị lỗi:\nMod Name: {x}\nServer Version: {y}\nWorkshop Version: {z}\nMã lỗi: {t}")
             # url = f'https://www.google.com/search?q={x}'
             # webbrowser.open(url)
+            print(steamapps_2)
             # messagebox.showinfo("Thông báo", "Các mod bị lỗi đã được hiển thị trong trình duyệt.\nChạy file download_mods.bat để tự động tải về.\nFile batch đã được tạo thành công.")
         except OSError as e:
             messagebox.showerror("Lỗi", f"Đã xảy ra lỗi khi xử lý file: {e}")
@@ -106,9 +131,11 @@ def option1_action():
 
 def option2_action():
     if mod_id_list:
+        print(steamapps_2)
+        print(steamcmd_path)
         output_batch_file = "download_mods.bat"
         with open(output_batch_file, 'w', encoding='utf-8') as batch_file:
-            batch_file.write(f'"{steamcmd_path}" +force_install_dir "{steamapps_mod}" +login anonymous')
+            batch_file.write(f'"{steamcmd_path}" +force_install_dir "{steamapps_2}" +login anonymous')
             for mod_id in mod_id_list:
                 batch_file.write(f' +workshop_download_item 322330 {mod_id} validate')
             batch_file.write(' +quit')
@@ -141,7 +168,11 @@ def download_steamcmd():
 
 def choose_steam_dir():
     steamapps = filedialog.askdirectory(title = "Chọn đường dẫn Steam")
-    steamapps_mod = f'"{steamapps}/{mod_dir}"'
+    if steamapps:
+        steamapps_mod = f'"{steamapps}/{mod_dir}"'
+        messagebox.showinfo("Đường dẫn tải mod", steamapps_mod)
+    else:
+        messagebox.showinfo("Đường dẫn tải mod", "Bạn chưa chọn đường dẫn")
 
 root = tk.Tk()
 root.title("SteamCMD Mod Downloader")
