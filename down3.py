@@ -4,8 +4,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
 import sys
-from regex_steamapps import find_paths_with_steamapps
-
+import subprocess
 
 #print(steamapps)
 #print(steamapps_mod)
@@ -86,7 +85,6 @@ def process_file():
                             t = match3.group(1)
 
             with open(input_file, 'r', encoding='utf-8') as infile:
-<<<<<<< HEAD
                     flag = 1
                     for line4 in infile:
                         match4 = re.search(pattern4, line4)
@@ -94,16 +92,12 @@ def process_file():
                             base_path = match4.group(0)
                             #print(base_path)
                             # base_path = re.search(r"[^ ]*\\steamapps\\", path).group(0)
-                            new_path = base_path + "workshop/content/322330"
+                            new_path = base_path.replace("\steamapps", "")
+
                             steamapps_2 = new_path
                             flag = 0
                             break
-                            #print(steamapps)
-=======
-                    for line4 in infile:
-                        steanapps_log = find_paths_with_steamapps(line4)
->>>>>>> 2e3c42b5a39bfceb132ba33d92338cacc6297290
-                    
+
                     #batch_file.write(' +quit\n')
             # messagebox.showinfo("Mod Information", f"Mod bị lỗi:\nMod Name: {x}\nServer Version: {y}\nWorkshop Version: {z}\nMã lỗi: {t}")
             # url = f'https://www.google.com/search?q={x}'
@@ -133,15 +127,47 @@ def option2_action():
     if mod_id_list:
         print(steamapps_2)
         print(steamcmd_path)
-        output_batch_file = "download_mods.bat"
-        with open(output_batch_file, 'w', encoding='utf-8') as batch_file:
-            batch_file.write(f'"{steamcmd_path}" +force_install_dir "{steamapps_2}" +login anonymous')
-            for mod_id in mod_id_list:
-                batch_file.write(f' +workshop_download_item 322330 {mod_id} validate')
-            batch_file.write(' +quit')
-            messagebox.showinfo("Tạo Batch File", "Tạo download_mods.bat thành công")
+
+        # Construct the command to execute as a list
+        command = [
+            steamcmd_path,
+            "+force_install_dir", steamapps_2,
+            "+login", "anonymous"
+        ]
+
+        for mod_id in mod_id_list:
+            command.extend(["+workshop_download_item", "322330", mod_id, "validate"])
+
+        command.append("+quit")
+
+        # Execute the command and show terminal output in real-time
+        try:
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            for line in process.stdout:
+                print(line, end='')  # Print each line of output as it is produced
+            process.stdout.close()
+            process.wait()
+            
+            if process.returncode == 0:
+                # Show success message
+                messagebox.showinfo("Tạo Batch File", "Tạo download_mods.bat thành công")
+            else:
+                # Capture and print any error output
+                error_output = process.stderr.read()
+                print("Error output:", error_output)
+                # Show error message
+                messagebox.showinfo("Lỗi", "Có lỗi xảy ra khi thực thi lệnh")
+
+        except subprocess.CalledProcessError as e:
+            # Handle errors in the called executable
+            print("An error occurred:", e)
+            print("Error output:", e.stderr)
+            # Show error message
+            messagebox.showinfo("Lỗi", "Có lỗi xảy ra khi thực thi lệnh")
     else:
+        # Show error message
         messagebox.showinfo("Lỗi", "Không có id nào")
+
 def option3_action():
     popup = tk.Toplevel(root)
     popup.geometry("300x200")
