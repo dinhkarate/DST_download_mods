@@ -5,6 +5,9 @@ from tkinter import filedialog, messagebox
 import os
 import sys
 import subprocess
+import zipfile
+import requests
+import threading
 
 #print(steamapps)
 #print(steamapps_mod)
@@ -123,49 +126,78 @@ def option1_action():
     else:
         messagebox.showinfo("Lỗi", "Không tìm thấy id nào bị lỗi")
 
+def execute_command(command):
+    """Thực thi lệnh và hiển thị đầu ra trong thời gian thực."""
+    try:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        for line in process.stdout:
+            print(line, end='')  # In mỗi dòng đầu ra khi nó được sản xuất
+        process.stdout.close()
+        process.wait()
+        print("Đã chạy xong!!!")
+        
+        if process.returncode == 0:
+            # Hiển thị thông báo thành công
+            messagebox.showinfo("Tải Mod", "Tải Mod xong")
+        else:
+            # Capture and print any error output
+            error_output = process.stderr.read()
+            print("Error output:", error_output)
+            # Hiển thị thông báo lỗi
+            messagebox.showinfo("Lỗi", "Có lỗi xảy ra khi thực thi lệnh 1")
+
+    except subprocess.CalledProcessError as e:
+        # Handle errors in the called executable
+        print("An error occurred:", e)
+        print("Error output:", e.stderr)
+        # Hiển thị thông báo lỗi
+        messagebox.showinfo("Lỗi", "Có lỗi xảy ra khi thực thi lệnh 2")
+
 def option2_action():
+    # Lấy đường dẫn thư mục hiện tại
+    current_dir = os.getcwd()
+    
+    # Đường dẫn thư mục steamcmd
+    steamcmd_dir = os.path.join(current_dir, 'steamcmd')
+    
+    # Đường dẫn tệp steamcmd.exe
+    steamcmd_exe = os.path.join(steamcmd_dir, 'steamcmd.exe')
+    global steamapps_2
+    global mod_id_list
+
     if mod_id_list:
+        print("Đây là steamapps_2")
         print(steamapps_2)
+        print("Đây là steamcmd_path\n")
         print(steamcmd_path)
+
+        # Kiểm tra xem steamcmd.exe có tồn tại không
+        if not os.path.isfile(steamcmd_exe):
+            messagebox.showinfo("steamcmd.exe", "steamcmd.exe không tồn tại.\nĐang tải về...")
+            print("steamcmd.exe không tồn tại. Đang tải về...")
+            download_url = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip'
+            extract_to = os.path.join(os.getcwd(), 'steamcmd')
+            download_and_extract_steamcmd(download_url, extract_to)
+            print("Đã tải về và giải nén steamcmd.exe.")
 
         # Construct the command to execute as a list
         command = [
-            steamcmd_path,
+            steamcmd_exe,
             "+force_install_dir", steamapps_2,
             "+login", "anonymous"
         ]
+
+        print(command)
 
         for mod_id in mod_id_list:
             command.extend(["+workshop_download_item", "322330", mod_id, "validate"])
 
         command.append("+quit")
 
-        # Execute the command and show terminal output in real-time
-        try:
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            for line in process.stdout:
-                print(line, end='')  # Print each line of output as it is produced
-            process.stdout.close()
-            process.wait()
-            
-            if process.returncode == 0:
-                # Show success message
-                messagebox.showinfo("Tạo Batch File", "Tạo download_mods.bat thành công")
-            else:
-                # Capture and print any error output
-                error_output = process.stderr.read()
-                print("Error output:", error_output)
-                # Show error message
-                messagebox.showinfo("Lỗi", "Có lỗi xảy ra khi thực thi lệnh")
-
-        except subprocess.CalledProcessError as e:
-            # Handle errors in the called executable
-            print("An error occurred:", e)
-            print("Error output:", e.stderr)
-            # Show error message
-            messagebox.showinfo("Lỗi", "Có lỗi xảy ra khi thực thi lệnh")
+        # Chạy lệnh trong một luồng riêng biệt
+        threading.Thread(target=execute_command, args=(command,)).start()
     else:
-        # Show error message
+        # Hiển thị thông báo lỗi
         messagebox.showinfo("Lỗi", "Không có id nào")
 
 def option3_action():
@@ -202,6 +234,7 @@ def choose_steam_dir():
 
 root = tk.Tk()
 root.title("SteamCMD Mod Downloader")
+root.iconbitmap('down3.ico')
 
 process_button = tk.Button(root, text="Chọn file log", command=process_file)
 process_button.pack(pady=10)
@@ -218,7 +251,7 @@ button_frame.pack(pady=10)
 option1_button = tk.Button(button_frame, text="Mở Link Mod không tìm thấy", command=option1_action)
 option1_button.pack(side=tk.LEFT, padx=5)
 
-option2_button = tk.Button(button_frame, text="Tạo file download_mods", command=option2_action)
+option2_button = tk.Button(button_frame, text="Tải Mod", command=option2_action)
 option2_button.pack(side=tk.LEFT, padx=5)
 
 option3_button = tk.Button(button_frame, text="Thêm Mod", command=option3_action)
