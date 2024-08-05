@@ -177,6 +177,7 @@ def option3_action():
     entry1.pack(pady=5)
     def xacnhan_button():
         id_mod = entry1.get()
+
         mod_id_list.append(id_mod)
         popup.destroy()
     xacnhan = tk.Button(popup, text="Xác nhận", command=xacnhan_button)
@@ -190,13 +191,13 @@ def download_steamcmd():
 
 # Function to choose the Steam directory
 def choose_steam_dir():
-    global steamapps, steamapps_mod
-    steamapps = filedialog.askdirectory(title="Chọn đường dẫn Steam")
-    if steamapps:
-        steamapps_mod = f'"{steamapps}/{mod_dir}"'
-        messagebox.showinfo("Đường dẫn tải mod", steamapps_mod)
+    global steamapps_2
+    steamapps_2 = filedialog.askdirectory(title="Chọn đường dẫn Steam")
+    if steamapps_2:
+        messagebox.showinfo("Đường dẫn tải mod", steamapps_2)
     else:
         messagebox.showinfo("Đường dẫn tải mod", "Bạn chưa chọn đường dẫn")
+    update_option2_button_state()
 
 # Initialize the main application window
 root = tk.Tk()
