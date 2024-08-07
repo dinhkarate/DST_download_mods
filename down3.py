@@ -171,15 +171,33 @@ def option3_action():
     popup = tk.Toplevel(root)
     popup.geometry("300x200")
     popup.title("Thêm ID mod")
+    
     label1 = tk.Label(popup, text="Nhập ID mod:")
     label1.pack(pady=5)
+    
     entry1 = tk.Entry(popup)
     entry1.pack(pady=5)
+    
     def xacnhan_button():
         id_mod = entry1.get()
-
-        mod_id_list.append(id_mod)
-        popup.destroy()
+        
+        try:
+            # Chuyển ID mod sang số chuỗi
+            id_mod_int = str(id_mod)
+            mod_id_list.append(id_mod_int)
+            popup.destroy()
+        except ValueError:
+            messagebox.showerror("Lỗi", "ID mod phải là số.")
+        except UnicodeDecodeError:
+            # Xử lý lỗi mã hóa
+            try:
+                id_mod = id_mod.encode('latin1').decode('utf-8')
+                id_mod_int = int(id_mod)
+                mod_id_list.append(id_mod_int)
+                popup.destroy()
+            except (ValueError, UnicodeDecodeError):
+                messagebox.showerror("Lỗi", "ID mod không hợp lệ hoặc chứa ký tự không thể giải mã.")
+    
     xacnhan = tk.Button(popup, text="Xác nhận", command=xacnhan_button)
     xacnhan.pack(pady=10)
 
