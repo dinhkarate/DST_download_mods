@@ -50,6 +50,7 @@ def process_file():
     global steamapps_2
     input_file = filedialog.askopenfilename(title="Chọn file input", filetypes=(("Text files", "*.txt"), ("All files", "*.*")))
     x = y = z = t = "Không tìm thấy"
+    
     if input_file:
         try:
             with open(input_file, 'r', encoding='utf-8') as infile:
@@ -83,7 +84,9 @@ def process_file():
                         steamapps_2 = new_path
                         flag = 0
                         break
+            display_steam_info()
             update_option2_button_state()
+
         except OSError as e:
             messagebox.showerror("Lỗi", f"Đã xảy ra lỗi khi xử lý file: {e}")
     else:
@@ -106,30 +109,37 @@ def option1_action():
 # Function to download and extract SteamCMD
 def download_and_extract_steamcmd(download_url, extract_to):
     zip_filename = 'steamcmd.zip'
+    
     with requests.get(download_url, stream=True) as response:
         response.raise_for_status()
         with open(zip_filename, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
+
     with zipfile.ZipFile(zip_filename, 'r') as zip_ref:
         zip_ref.extractall(extract_to)
+    
     os.remove(zip_filename)
 
 # Function to execute a command and display output
 def execute_command(command):
     try:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
         for line in process.stdout:
             print(line, end='')
+
         process.stdout.close()
         process.wait()
         print("Đã chạy xong!!!")
+
         if process.returncode == 0:
             messagebox.showinfo("Tải Mod", "Tải Mod xong")
         else:
             error_output = process.stderr.read()
             print("Error output:", error_output)
             messagebox.showinfo("Lỗi", "Có lỗi xảy ra khi thực thi lệnh 1")
+
     except subprocess.CalledProcessError as e:
         print("An error occurred:", e)
         print("Error output:", e.stderr)
@@ -142,54 +152,59 @@ def option2_action():
     steamcmd_exe = os.path.join(steamcmd_dir, 'steamcmd.exe')
     global steamapps_2
     global mod_id_list
+
     if mod_id_list:
         print("Đây là steamapps_2")
         print(steamapps_2)
         print("Đây là steamcmd_path\n")
         print(steamcmd_path)
+
         if not os.path.isfile(steamcmd_exe):
             print("steamcmd.exe không tồn tại. Đang tải về...")
             download_url = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip'
             extract_to = os.path.join(os.getcwd(), 'steamcmd')
             download_and_extract_steamcmd(download_url, extract_to)
             print("Đã tải về và giải nén steamcmd.exe.")
+
         command = [
             steamcmd_exe,
             "+force_install_dir", steamapps_2,
             "+login", "anonymous"
         ]
+        
         print(command)
+
         for mod_id in mod_id_list:
             command.extend(["+workshop_download_item", "322330", mod_id, "validate"])
+
         command.append("+quit")
         threading.Thread(target=execute_command, args=(command,)).start()
     else:
         messagebox.showinfo("Lỗi", "Không có id nào")
+    display_steam_info()
 
 # Function to handle option 3 action
 def option3_action():
     popup = tk.Toplevel(root)
     popup.geometry("300x200")
     popup.title("Thêm ID mod")
-    
+
     label1 = tk.Label(popup, text="Nhập ID mod:")
     label1.pack(pady=5)
-    
+
     entry1 = tk.Entry(popup)
     entry1.pack(pady=5)
-    
+
     def xacnhan_button():
         id_mod = entry1.get()
         
         try:
-            # Chuyển ID mod sang số chuỗi
             id_mod_int = str(id_mod)
             mod_id_list.append(id_mod_int)
             popup.destroy()
         except ValueError:
             messagebox.showerror("Lỗi", "ID mod phải là số.")
         except UnicodeDecodeError:
-            # Xử lý lỗi mã hóa
             try:
                 id_mod = id_mod.encode('latin1').decode('utf-8')
                 id_mod_int = int(id_mod)
@@ -197,7 +212,7 @@ def option3_action():
                 popup.destroy()
             except (ValueError, UnicodeDecodeError):
                 messagebox.showerror("Lỗi", "ID mod không hợp lệ hoặc chứa ký tự không thể giải mã.")
-    
+
     xacnhan = tk.Button(popup, text="Xác nhận", command=xacnhan_button)
     xacnhan.pack(pady=10)
 
@@ -211,11 +226,40 @@ def download_steamcmd():
 def choose_steam_dir():
     global steamapps_2
     steamapps_2 = filedialog.askdirectory(title="Chọn đường dẫn Steam")
+    
     if steamapps_2:
         messagebox.showinfo("Đường dẫn tải mod", steamapps_2)
     else:
         messagebox.showinfo("Đường dẫn tải mod", "Bạn chưa chọn đường dẫn")
+    display_steam_info()
     update_option2_button_state()
+
+# List to keep track of labels
+current_labels = []
+
+def display_steam_info():
+    global current_labels
+    
+    # Remove existing labels if any
+    for label in current_labels:
+        label.destroy()
+    
+    current_labels = []
+
+    # Get the current Steam directory path
+    steam_dir_path = steamapps_2 if steamapps_2 else "Chưa chọn đường dẫn Steam"
+    
+    # Check if steamcmd.exe exists
+    steamcmd_exists = "Đã tải" if os.path.isfile(steamcmd_path) else "Chưa tải"
+
+    # Create labels to display the information
+    steam_dir_label = tk.Label(root, text=f"Đường dẫn Steam hiện tại: {steam_dir_path}")
+    steam_dir_label.pack(pady=10)
+    current_labels.append(steam_dir_label)
+    
+    steamcmd_status_label = tk.Label(root, text=f"Tình trạng steamcmd: {steamcmd_exists}")
+    steamcmd_status_label.pack(pady=10)
+    current_labels.append(steamcmd_status_label)
 
 # Initialize the main application window
 root = tk.Tk()
@@ -243,8 +287,8 @@ option2_button.pack(side=tk.LEFT, padx=5)
 option3_button = tk.Button(button_frame, text="Thêm Mod", command=option3_action)
 option3_button.pack(side=tk.LEFT, padx=5)
 
-# Disable the option2_button initially
+display_steam_info()
 update_option2_button_state()
 
-# Run the main application loop
+# Run the application
 root.mainloop()
